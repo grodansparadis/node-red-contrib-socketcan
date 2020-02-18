@@ -1,0 +1,81 @@
+
+<!--
+///////////////////////////////////////////////////////////////////////////
+// send.html
+//
+// socketcan output node.
+//
+// This file is part of the VSCP (http://www.vscp.org)
+//
+// The MIT License (MIT)
+//
+// Copyright © 2020 Ake Hedman, Grodans Paradis AB
+// <info@grodansparadis.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+-->
+
+<script type="text/x-red" data-template-name="socketcan-send">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-config"><i class="fa fa-tasks"></i>Interface</label>
+        <input type="text" id="node-input-config" placeholder="vcan0">
+    </div>
+</script>
+
+
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/x-red" data-help-name="socketcan-send">
+   <p>Simple node to send a can frame with specified channel and id,data will be
+   taken as input in the form of msg.payload ,like from inject node</p>
+   <p>This node considers input as per following priority sequence <br/>
+   1.msg.canid, msg.payload are valid <br/>
+   2.msg.payload is in the form of canid#data <br/>
+   3.In absence of msg.canid or msg.payload 
+   4.In absence of canid,data in incoming message or node configuration
+   random canid, random data will be generated.<br/>
+   Please make sure msg.payload is not in the form of id#data when msg.canid is valid
+   </p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('socketcan-send',{
+	category: 'network',     
+	color: '#bbff33',
+        defaults: {       
+            name: {value:"socketcan-send"},      
+	        config: {type:"socketcan-config",required:true},
+        },
+        inputs:1,               
+        outputs:0,              
+  
+        icon: "bridge.png",     
+        label: function() {     
+            return this.name || "socketcan-send";
+        },
+        labelStyle: function() { 
+            return this.channel ? "node_label_italic" : "";
+        }
+    });
+</script>
