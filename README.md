@@ -12,6 +12,16 @@ Some info about bringing a (virtual) CAN interface up is [here](https://elinux.o
 
 This project is part of the VSCP (https://www.vscp.org) project.
 
+## Install
+
+Go to node-red folder and
+
+```bash
+npm install node-red-contrib-socketcan
+```
+
+or install in node-red palette.
+
 ## Sending CAN frames
 
 ![socketcan-in](./images/socketcan-in.png)
