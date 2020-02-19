@@ -1,35 +1,310 @@
-A set of simple nodes for CANBus management on linux machines based on
-socketcan npm package(https://www.npmjs.com/package/socketcan,
-https://github.com/sebi2k1/node-can)
+# node-red-contrib-socketcan
 
-Current Status:-
-- canconfig to configure channel, bitrate
-- candump which listens for incoming frames and dumps id,dlc,data for each frame
-- cansend to send frame based on specfied id, payload or combination
-- Trying to implement similar functionality of socketcan utils like candump,cangen
-- Not using many options for cansend such as id range, frame count, duration 
-  in between as these are managed from input of additional function nodes
+![socketcan](./images/node-red-contrib-socketcan.png)
 
-How to Enable Virtual CAN Channel:-
+This is a couple of nodes to read CAN frames from and send CAN frames to a CAN bus using socketcan. [Socketcan](https://www.kernel.org/doc/Documentation/networking/can.txt) is the standard CAN subsystem on Linux. Socketcan is not available on Windows.
 
-	modprobe vcan
+This project is inspired by [node-red-contrib-canbus](https://flows.nodered.org/node/node-red-contrib-canbus) (Rajesh Sola <rajeshsola@gmail.com>) which almost did what I needed but not quite.
 
-	ip link add dev vcan0 type vcan
+[can-utils](https://github.com/linux-can/can-utils) is a good set of companion tools when working with socketcan.
 
-	ip link set up vcan0 
+Some info about bringing a (virtual) CAN interface up is [here](https://elinux.org/Bringing_CAN_interface_up). If you need real CAN hardware [TouCAN](https://www.rusoku.com/products) is a good choice (no affiliation except for using it myself).
 
-	#you can refer https://github.com/linux-can/can-utils/ 
-	
+This project is part of the VSCP (https://www.vscp.org) project.
 
-TODO/Wish List:-
-- Adding Support for extended frames
-- Adding more configuration values
-- Using better random engine 
-- Integration with Kayak
-- Better documentation
+## Sending CAN frames
 
-Test flow:-
+![socketcan-in](./images/socketcan-in.png)
 
-	[{"id":"73a93f72.2489","type":"canconfig","z":0,"channel":"vcan0","bitrate":"100000"},{"id":"6e1ca89c.d417b","type":"cansend","z":"21e7592e.177786","config":"73a93f72.2489","canid":"","payload":"","x":570,"y":204,"wires":[]},{"id":"fa2cf7a7.55afe","type":"candump","z":"21e7592e.177786","name":"candump","vconfig":"73a93f72.2489","x":138,"y":104,"wires":[["f2631912.a5ca18"]]},{"id":"233b31e6.9f3d26","type":"inject","z":"21e7592e.177786","name":"","topic":"","payload":"200#abxy","payloadType":"string","repeat":"","crontab":"","once":false,"x":155,"y":203,"wires":[["7dc36d2.f427d14","fc78a840.c0006"]]},{"id":"f2631912.a5ca18","type":"debug","z":"21e7592e.177786","name":"","active":true,"console":"false","complete":"true","x":521,"y":108,"wires":[]},{"id":"3c5d3978.ef7fbe","type":"inject","z":"21e7592e.177786","name":"","topic":"","payload":"abcd","payloadType":"string","repeat":"","crontab":"","once":false,"x":149,"y":381,"wires":[["935e9142.7c2f9"]]},{"id":"935e9142.7c2f9","type":"function","z":"21e7592e.177786","name":"","func":"var msg;\nmsg.canid=129;\nreturn msg;","outputs":1,"noerr":0,"x":324,"y":384,"wires":[["7dc36d2.f427d14"]]},{"id":"1eb03187.f054de","type":"inject","z":"21e7592e.177786","name":"blank","topic":"","payload":"","payloadType":"none","repeat":"","crontab":"","once":false,"x":151,"y":288,"wires":[[]]},{"id":"7dc36d2.f427d14","type":"cansend","z":"21e7592e.177786","config":"73a93f72.2489","canid":"130","payload":"","x":575,"y":345,"wires":[]},{"id":"73fe1cf1.7d1bbc","type":"cansend","z":"21e7592e.177786","config":"73a93f72.2489","canid":"","payload":"hello","x":578,"y":274,"wires":[]},{"id":"fc78a840.c0006","type":"cansend","z":"21e7592e.177786","config":"73a93f72.2489","canid":"130","payload":"hello","x":581,"y":404,"wires":[]}]
+<b>socketcan-in</b> node is provided for sending CAN frames. You can send standard or extended id frames but currently not FD frames. 
 
+Set up the interface to some real CAN hardware or use a virtual interface.
 
+### payload
+
+#### Object/JSON formated message
+The CAN message is defined as a JSON object with the following payload format
+
+```json
+{
+	"ext":false,
+	"rtr":false,
+	"canid":123,
+	"dlc":5,
+	"data":[1,2,3,4,5]}
+}
+```
+
+* <b>ext</b> - Marks the message as an extended id message.
+* <b>rtr</b> - The message is a remote transmission request. No data should be specified in this case (set to null).
+* <b>canid</b> - The canid for the CAN message. Must be less then 0x7ff for a standard CAN message.
+* <b>dlc</b> - Number of databytes, 0-8.
+* <b>data</b> - An array, comma separated list or buffer with data bytes. Set to null if no data.
+
+#### String formated messages
+
+The CAN message is defined as a string with the following payload format
+
+```
+<canid>#{R|data}
+```
+
+* <b>canid</b> - Less than 0x7ff and with less than three digits for a standard id. Always defined in hex format.
+* <b>data</b> - The data part for the can frame. Always in hex format.
+* <b>R</b> - Specifies a remote transmission request frame.
+
+##### Examples
+
+```
+123#DEADBEEF - standard frame 
+5AA#         - Standard frame no data
+1F334455#1122334455667788 - extended frame
+123#R         - for remote transmission request.
+```
+
+## Receiving CAN frames
+
+![socketcan-out](./images/socketcan-out.png)
+
+<b>socketcan-out</b> node is provided for receiving CAN frames. You can receive standard or extended CAN id frames. 
+
+Set up the interface to some real CAN hardware or use a virtual interface.
+
+### Payload
+
+The payload is always a Javascript object on the following form.
+
+{
+	timestamp: 1552881174,
+	ext: 0,
+	rtr: 0,
+	canid: 123,
+	dlc: 5,
+	data: [1,2,3,4,5]
+}
+
+* <b>canid</b> - The standard or extended can id.
+* <b>ext</b> - Set to true if this is a extended id frame. False otherwise.
+* <b>rtr</b> - Specifies a remote transmission request frame if set to true.
+* <b>dlc</b> - Number of databytes.
+* <b>data</b> - An array with data or null or an empty array if no data. 
+
+The timestamp (in microseconds) is generated by the node if not supplied by the interface.
+
+## Example flow
+
+Enable a virtual CAN interface with
+
+```bash
+$ modprobe vcan
+$ sudo ip link add dev vcan0 type vcan
+$ sudo ip link set up vcan0
+
+```
+
+install can-utils with
+
+```bash
+sudo apt install canuils
+```
+
+Receive CAN frames with
+
+```bash
+candump vcan0
+```
+
+Send CAN frames with
+
+```bash
+cansend vcan0 123#1122334455
+```
+
+Use this flow to interact with the other tools.
+
+```json
+[
+    {
+        "id": "829af3ee.a57c1",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "b2855d5b.1215c8",
+        "type": "socketcan-config",
+        "z": "",
+        "interface": "can0"
+    },
+    {
+        "id": "38e8307.1653f5",
+        "type": "socketcan-config",
+        "z": "",
+        "interface": "vcan0"
+    },
+    {
+        "id": "7b24a62e.8f5458",
+        "type": "debug",
+        "z": "829af3ee.a57c1",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 350,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "5f671b29.cd24bc",
+        "type": "socketcan-out",
+        "z": "829af3ee.a57c1",
+        "name": "socketcan-out",
+        "config": "38e8307.1653f5",
+        "x": 150,
+        "y": 360,
+        "wires": [
+            [
+                "7b24a62e.8f5458"
+            ]
+        ]
+    },
+    {
+        "id": "caba412f.047b2",
+        "type": "socketcan-in",
+        "z": "829af3ee.a57c1",
+        "name": "socketcan-out",
+        "config": "38e8307.1653f5",
+        "x": 360,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "a64240cb.3f0788",
+        "type": "inject",
+        "z": "829af3ee.a57c1",
+        "name": "Send object - std",
+        "topic": "",
+        "payload": "{\"ext\":false,\"canid\":123,\"dlc\":5,\"data\":[1,2,3,4,5]}",
+        "payloadType": "json",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 160,
+        "y": 120,
+        "wires": [
+            [
+                "caba412f.047b2"
+            ]
+        ]
+    },
+    {
+        "id": "3ff96369.ef6f5c",
+        "type": "inject",
+        "z": "829af3ee.a57c1",
+        "name": "Send string - std",
+        "topic": "",
+        "payload": "123#00112233",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 160,
+        "y": 200,
+        "wires": [
+            [
+                "caba412f.047b2"
+            ]
+        ]
+    },
+    {
+        "id": "6879c00a.5edb68",
+        "type": "inject",
+        "z": "829af3ee.a57c1",
+        "name": "Send string - ext",
+        "topic": "",
+        "payload": "1F334455#1122334455667788",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 160,
+        "y": 240,
+        "wires": [
+            [
+                "caba412f.047b2"
+            ]
+        ]
+    },
+    {
+        "id": "1ee3b274.4cb8fe",
+        "type": "inject",
+        "z": "829af3ee.a57c1",
+        "name": "Send object - ext",
+        "topic": "",
+        "payload": "{\"ext\":true,\"canid\":32278,\"dlc\":5,\"data\":[1,2,3,4,5]}",
+        "payloadType": "json",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 160,
+        "y": 160,
+        "wires": [
+            [
+                "caba412f.047b2"
+            ]
+        ]
+    },
+    {
+        "id": "391a4c45.7acd8c",
+        "type": "comment",
+        "z": "829af3ee.a57c1",
+        "name": "Send CAN frames in using different payloads on VCAN0",
+        "info": "",
+        "x": 260,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "912f9928.da2758",
+        "type": "comment",
+        "z": "829af3ee.a57c1",
+        "name": "Receiove CAN data from interface VCAN0",
+        "info": "",
+        "x": 220,
+        "y": 320,
+        "wires": []
+    }
+]
+```
+
+## Debugging
+
+It is possible to get extra debug information from the nodes in this package.
+
+Issue
+
+``` bash
+export NODE_DEBUG=socketcan-in
+```
+before starting node-red to get extra debug info for the socketcan-in node.
+
+Issue
+
+``` bash
+export NODE_DEBUG=socketcan-out
+```
+before starting node-red to get extra debug info for the socketcan-out node.
+
+Issue
+
+``` bash
+export NODE_DEBUG=socketcan-in socketcan-out
+```
+before starting node-red to get extra debug info for both the socketcan-in and socketcan-out node.

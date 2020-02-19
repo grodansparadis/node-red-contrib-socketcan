@@ -5,7 +5,7 @@
 //
 // socketcan config node.
 //
-// This file is part of the VSCP (http://www.vscp.org)
+// This file is part of the VSCP (https://www.vscp.org)
 //
 // The MIT License (MIT)
 //
@@ -38,6 +38,12 @@
 		<input type="text" id="node-config-input-interface" placeholder="vcan0">
     </div>		
 </script>
+
+<script type="text/x-red" data-help-name="socketcan-config">
+    <p>Set the socketcan interface.</p>
+    <p>This should be an interface that exists (vcan0, can0 etc).</p>
+    <p>Interface setup instuctions can be found [here](https://elinux.org/Bringing_CAN_interface_up).
+ </script>
 
 <script type="text/javascript">
     RED.nodes.registerType('socketcan-config',{

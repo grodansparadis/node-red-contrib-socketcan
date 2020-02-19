@@ -3,7 +3,7 @@
 //
 // socketcan output node.
 //
-// This file is part of the VSCP (http://www.vscp.org)
+// This file is part of the VSCP (https://www.vscp.org)
 //
 // The MIT License (MIT)
 //
@@ -35,9 +35,9 @@ module.exports = function(RED) {
 
 	// Debug:
 	// https://nodejs.org/api/util.html
-	// export NODE_DEBUG=socketcan-send  for all debug events
+	// export NODE_DEBUG=socketcan-in  for all debug events
 	const util = require('util');
-	const debuglog = util.debuglog('socketcan-send');
+	const debuglog = util.debuglog('socketcan-in');
 	
 	var can = require('socketcan');
 	
@@ -147,7 +147,30 @@ module.exports = function(RED) {
 					// <can_id>##<flags>{data}
 					// for CAN FD frames
 					if( msg.payload && 
+						(msg.payload.indexOf("##") != -1 ) ) {   // CAN FD frame
+						debuglog("FD Frame");
+						throw(new Error("CAN FD is not supported yet"));
+				   		frame.id  = parseInt(msg.payload.split("##")[0],16);
+				   		debuglog("frame.id " + frame.id);
+				   		let data     = msg.payload.split("##")[1];
+				   		debuglog("data " + data);
+				   		frame.data   = Buffer.from(data,"hex");
+				   		frame.dlc    = frame.data.length;
+				   		if ( frame.dlc > 64 ) {
+
+					   		if (done) {
+						   		// Node-RED 1.0 compatible
+						   		done("Invalid CAN FD frame length " + frame.dlc);
+					   		} else {
+						   		// Node-RED 0.x compatible
+						   		node.error("Invalid CAN FD frame length " + frame.dlc, msg);
+					   		}
+					   
+				   		}					 
+			   		}
+					else if( msg.payload && 
 					    (msg.payload.indexOf("#") != -1 ) ) {
+							debuglog("CAN Frame");
 							let id = msg.payload.split("#")[0];
 							frame.id  = parseInt(id,16);
 							if ( (id.length > 3) || ( frame.id > 0x7ff ) ) {
@@ -177,24 +200,6 @@ module.exports = function(RED) {
 								frame.data = null;
 								frame.dlc  = 0;
 							}
-					}
-					else if( msg.payload && 
-							 (msg.payload.indexOf("##") != -1 ) ) {   // CAN FD frame
-						frame.id  = parseInt(msg.payload.split("##")[0],16);
-						let data     = msg.payload.split("##")[1];
-						frame.data   = Buffer.from(data,"hex");
-						frame.dlc    = frame.data.length;
-						if ( frame.dlc > 64 ) {
-
-							if (done) {
-								// Node-RED 1.0 compatible
-								done("Invalid CAN FD frame length " + frame.dlc);
-							} else {
-								// Node-RED 0.x compatible
-								node.error("Invalid CAN FD frame length " + frame.dlc, msg);
-							}
-							
-						}					 
 					}
 					else {
 
@@ -249,5 +254,5 @@ module.exports = function(RED) {
 	    	});
 		}
     }
-    RED.nodes.registerType("socketcan-send",SocketcanSendNode);
+    RED.nodes.registerType("socketcan-in",SocketcanSendNode);
 }

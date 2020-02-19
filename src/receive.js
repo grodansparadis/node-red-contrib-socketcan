@@ -4,7 +4,7 @@
 //
 // socketcan input node.
 //
-// This file is part of the VSCP (http://www.vscp.org)
+// This file is part of the VSCP (https://www.vscp.org)
 //
 // The MIT License (MIT)
 //
@@ -36,9 +36,9 @@ module.exports = function(RED) {
 	
 	// Debug:
 	// https://nodejs.org/api/util.html
-	// export NODE_DEBUG=socketcan-receive  for all debug events
+	// export NODE_DEBUG=socketcan-out  for all debug events
 	const util = require('util');
-	const debuglog = util.debuglog('socketcan-receive');
+	const debuglog = util.debuglog('socketcan-out');
 	
     var can = require('socketcan');
 
@@ -109,5 +109,5 @@ module.exports = function(RED) {
 	    	});	
 		}
     }
-    RED.nodes.registerType("socketcan-receive",SocketcanReceiveNode);
+    RED.nodes.registerType("socketcan-out",SocketcanReceiveNode);
 }

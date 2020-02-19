@@ -374,8 +374,8 @@
      "module": "node-red-contrib-socketcan",
      "file": "/home/akhe/development/VSCP/node-red-contrib-socketcan/.node-red/node_modules/node-red-contrib-socketcan/src/send.js"
     },
-    "candump": {
-     "name": "candump",
+    "canreceive": {
+     "name": "canreceive",
      "types": [
       "socketcan-receive"
      ],

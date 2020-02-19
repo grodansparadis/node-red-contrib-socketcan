@@ -1,11 +1,11 @@
 /**
- * Copyright JS Foundation and other contributors, http://js.foundation
+ * Copyright JS Foundation and other contributors, https://js.foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -88,7 +88,7 @@ module.exports = {
     // The following property can be used to specify an additional directory to scan.
     //nodesDir: '/home/nol/.node-red/nodes',
 
-    // By default, the Node-RED UI is available at http://localhost:1880/
+    // By default, the Node-RED UI is available at https://localhost:1880/
     // The following property can be used to specify a different root path.
     // If set to false, this is disabled.
     //httpAdminRoot: '/admin',
@@ -105,7 +105,7 @@ module.exports = {
 
     // When httpAdminRoot is used to move the UI to a different root path, the
     // following property can be used to identify a directory of static content
-    // that should be served at http://localhost:1880/.
+    // that should be served at https://localhost:1880/.
     //httpStatic: '/home/nol/node-red-static/',
 
     // The maximum size of HTTP request that will be accepted by the runtime api.
@@ -119,7 +119,7 @@ module.exports = {
     // Securing Node-RED
     // -----------------
     // To password protect the Node-RED editor and admin API, the following
-    // property can be used. See http://nodered.org/docs/security.html for details.
+    // property can be used. See https://nodered.org/docs/security.html for details.
     //adminAuth: {
     //    type: "credentials",
     //    users: [{
@@ -132,12 +132,12 @@ module.exports = {
     // To password protect the node-defined HTTP endpoints (httpNodeRoot), or
     // the static content (httpStatic), the following properties can be used.
     // The pass field is a bcrypt hash of the password.
-    // See http://nodered.org/docs/security.html#generating-the-password-hash
+    // See https://nodered.org/docs/security.html#generating-the-password-hash
     //httpNodeAuth: {user:"user",pass:"$2a$08$zZWtXTja0fB1pzD4sHCMyOCMYz2Z6dNbM6tl8sJogENOMcxWV9DN."},
     //httpStaticAuth: {user:"user",pass:"$2a$08$zZWtXTja0fB1pzD4sHCMyOCMYz2Z6dNbM6tl8sJogENOMcxWV9DN."},
 
     // The following property can be used to enable HTTPS
-    // See http://nodejs.org/api/https.html#https_https_createserver_options_requestlistener
+    // See https://nodejs.org/api/https.html#https_https_createserver_options_requestlistener
     // for details on its contents.
     // See the comment at the top of this file on how to load the `fs` module used by
     // this setting.
@@ -167,7 +167,7 @@ module.exports = {
 
     // If you need to set an http proxy please set an environment variable
     // called http_proxy (or HTTP_PROXY) outside of Node-RED in the operating system.
-    // For example - http_proxy=http://myproxy.com:8080
+    // For example - http_proxy=https://myproxy.com:8080
     // (Setting it here will have no effect)
     // You may also specify no_proxy (or NO_PROXY) to supply a comma separated
     // list of domains to not proxy, eg - no_proxy=.acme.co,.acme.co.uk
@@ -184,7 +184,7 @@ module.exports = {
 
     // The following property can be used to pass custom options to the Express.js
     // server used by Node-RED. For a full list of available options, refer
-    // to http://expressjs.com/en/api.html#app.settings.table
+    // to https://expressjs.com/en/api.html#app.settings.table
     //httpServerOptions: { },
 
     // The following property can be used to verify websocket connection attempts.
