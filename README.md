@@ -10,7 +10,7 @@ This project is inspired by [node-red-contrib-canbus](https://flows.nodered.org/
 
 Some info about bringing a (virtual) CAN interface up is [here](https://elinux.org/Bringing_CAN_interface_up). If you need real CAN hardware [TouCAN](https://www.rusoku.com/products) is a good choice (no affiliation except for using it myself).
 
-This project is part of the VSCP (https://www.vscp.org) project.
+This project is part of the VSCP ([https://www.vscp.org](https://www.vscp.org)) project.
 
 ## Install
 
@@ -109,7 +109,6 @@ Enable a virtual CAN interface with
 $ modprobe vcan
 $ sudo ip link add dev vcan0 type vcan
 $ sudo ip link set up vcan0
-
 ```
 
 install can-utils with
