@@ -99,13 +99,20 @@ module.exports = function(RED) {
 			///////////////////////////////////////////////////////////////////
 			//                          on close	
 			///////////////////////////////////////////////////////////////////
-			this.on("close", function() {
+			this.on("close", function(removed, done) {
 				
 				sock.stop();
 				
 				// Tell the worl we had gone down
 				this.status({fill:"red",shape:"dot",text:"disconnected."});
 
+				if (removed) {
+					// This node has been deleted
+				} else {
+					// This node is being restarted
+				}
+			
+				done();
 	    	});	
 		}
     }

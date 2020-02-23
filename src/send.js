@@ -245,12 +245,20 @@ module.exports = function(RED) {
 			///////////////////////////////////////////////////////////////////
 			//                     on close	
 			///////////////////////////////////////////////////////////////////
-	    	this.on("close", function() {
+	    	this.on("close", function(removed, done) {
 				// Stop operations
 				sock.stop();
 				
 				// Tell the world we had gone down
 				this.status({fill:"red",shape:"dot",text:"disconnected."});
+
+				if (removed) {
+					// This node has been deleted
+				} else {
+					// This node is being restarted
+				}
+			
+				done();
 	    	});
 		}
     }
