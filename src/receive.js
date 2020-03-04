@@ -1,4 +1,3 @@
-
 ///////////////////////////////////////////////////////////////////////////
 // receive.js
 //
@@ -86,11 +85,11 @@ module.exports = function(RED) {
 				debuglog("CAN message :",frame);
 				var msg={};
 				msg.payload = {};
-				msg.payload.timestamp = frame.timestamp | new Date().getTime();
-				msg.payload.ext       = frame.ext | false;
+				msg.payload.timestamp = frame.timestamp || new Date().getTime();
+				msg.payload.ext       = frame.ext || false;
 				msg.payload.canid     = frame.id; 
 				msg.payload.dlc       = frame.data.length;
-				msg.payload.rtr       = frame.rtr | false;
+				msg.payload.rtr       = frame.rtr || false;
 				msg.payload.data = [];
 				msg.payload.data.push(frame.data);
 				node.send(msg);
