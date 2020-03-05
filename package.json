@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-socketcan",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "node-red nodes for socketcan",
   "dependencies": {
     "socketcan": "^2.7.0",
@@ -35,7 +35,13 @@
   "keywords": [
     "node-red",
     "socketcan",
-    "canbus"
+    "canbus",
+    "can",
+    "canopen",
+    "vscp",
+    "automation",
+    "iot",
+    "m2m"
   ],
   "node-red": {
     "nodes": {
