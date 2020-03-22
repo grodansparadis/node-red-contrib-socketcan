@@ -37,7 +37,7 @@ module.exports = function(RED) {
    function SocketcanConfigNode(config) {
    
       RED.nodes.createNode(this,config);
-	   this.interface = config.interface;
+      this.interface = config.interface;
    }
    RED.nodes.registerType("socketcan-config",SocketcanConfigNode);
 }

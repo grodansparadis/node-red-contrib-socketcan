@@ -81,7 +81,8 @@ module.exports = function(RED) {
 			///////////////////////////////////////////////////////////////////
 			//                         on input	
 			///////////////////////////////////////////////////////////////////
-        	this.on('input', function (msg, send, done ) {
+			
+			this.on('input', function (msg, send, done ) {
 
 				debuglog(msg);
 
@@ -150,26 +151,26 @@ module.exports = function(RED) {
 						(msg.payload.indexOf("##") != -1 ) ) {   // CAN FD frame
 						debuglog("FD Frame");
 						throw(new Error("CAN FD is not supported yet"));
-				   		frame.id  = parseInt(msg.payload.split("##")[0],16);
-				   		debuglog("frame.id " + frame.id);
-				   		let data     = msg.payload.split("##")[1];
-				   		debuglog("data " + data);
-				   		frame.data   = Buffer.from(data,"hex");
-				   		frame.dlc    = frame.data.length;
-				   		if ( frame.dlc > 64 ) {
+						// frame.id  = parseInt(msg.payload.split("##")[0],16);
+						// debuglog("frame.id " + frame.id);
+						// let data     = msg.payload.split("##")[1];
+						// debuglog("data " + data);
+						// frame.data   = Buffer.from(data,"hex");
+						// frame.dlc    = frame.data.length;
+						// if ( frame.dlc > 64 ) {
 
-					   		if (done) {
-						   		// Node-RED 1.0 compatible
-						   		done("Invalid CAN FD frame length " + frame.dlc);
-					   		} else {
-						   		// Node-RED 0.x compatible
-						   		node.error("Invalid CAN FD frame length " + frame.dlc, msg);
-					   		}
-					   
-				   		}					 
-			   		}
+						// 	if (done) {
+						//    		// Node-RED 1.0 compatible
+						//    		done("Invalid CAN FD frame length " + frame.dlc);
+						// 	} else {
+						//    		// Node-RED 0.x compatible
+						//    		node.error("Invalid CAN FD frame length " + frame.dlc, msg);
+						// 	}
+						
+						// }					 
+					}
 					else if( msg.payload && 
-					    (msg.payload.indexOf("#") != -1 ) ) {
+						(msg.payload.indexOf("#") != -1 ) ) {
 							debuglog("CAN Frame");
 							let id = msg.payload.split("#")[0];
 							frame.id  = parseInt(id,16);
@@ -217,11 +218,11 @@ module.exports = function(RED) {
 				}
 
 				debuglog("canid:" + frame.id + 
-						 " dlc:"  + frame.dlc + 
-						 " data:" + Array.prototype.slice.call(frame.data,0) + 
-						 " ext:"  + frame.ext +
-						 " rtr:"  + frame.rtr );
-			
+							" dlc:"  + frame.dlc + 
+							" data:" + Array.prototype.slice.call(frame.data,0) + 
+							" ext:"  + frame.ext +
+							" rtr:"  + frame.rtr );
+				
 				// Send the CAN frame			 	
 				try {
 					sock.send( frame );
@@ -245,7 +246,7 @@ module.exports = function(RED) {
 			///////////////////////////////////////////////////////////////////
 			//                     on close	
 			///////////////////////////////////////////////////////////////////
-	    	this.on("close", function(removed, done) {
+			this.on("close", function(removed, done) {
 				// Stop operations
 				sock.stop();
 				
@@ -259,7 +260,7 @@ module.exports = function(RED) {
 				}
 			
 				done();
-	    	});
+			});
 		}
     }
     RED.nodes.registerType("socketcan-in",SocketcanSendNode);
