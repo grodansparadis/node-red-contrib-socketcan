@@ -51,7 +51,8 @@ module.exports = function(RED) {
 			this.interface = this.config.interface;
 		}
 		else {
-			this.interface="vcan0";
+			return;	// Do nothing
+			//this.interface="vcan0";
 		}
 
 		debuglog("CAN interface = " + this.interface);

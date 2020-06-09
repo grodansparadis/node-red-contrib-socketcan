@@ -3,6 +3,7 @@
   "version": "1.0.5",
   "description": "node-red nodes for socketcan",
   "dependencies": {
+    "minimist": "^1.2.5",
     "socketcan": "^2.7.0",
     "util": "^0.12.2"
   },

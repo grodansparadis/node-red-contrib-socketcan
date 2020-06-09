@@ -367,7 +367,7 @@
     "cansend": {
      "name": "cansend",
      "types": [
-      "socketcan-send"
+      "socketcan-in"
      ],
      "enabled": true,
      "local": true,
@@ -377,7 +377,7 @@
     "canreceive": {
      "name": "canreceive",
      "types": [
-      "socketcan-receive"
+      "socketcan-out"
      ],
      "enabled": true,
      "local": true,
