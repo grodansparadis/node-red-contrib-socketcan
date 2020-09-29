@@ -81,7 +81,7 @@ module.exports = function(RED) {
 			// Tell the world we are on
 			this.status({fill:"green",shape:"dot",text:"connected " + "<" + this.interface + ">" });
 		
-			// Add a message listner
+			// Add a message listener
 			sock.addListener("onMessage",function(frame) {
 				debuglog("CAN message :",frame);
 				var msg={};
@@ -92,7 +92,8 @@ module.exports = function(RED) {
 				msg.payload.dlc       = frame.data.length;
 				msg.payload.rtr       = frame.rtr || false;
 				msg.payload.data = [];
-				msg.payload.data.push(frame.data);
+				//msg.payload.data.push(frame.data);
+				msg.payload.data =  Array.prototype.slice.call(frame.data, 0);
 				node.send(msg);
 			});
 			

@@ -2,7 +2,7 @@
  "nodes": {
   "node-red": {
    "name": "node-red",
-   "version": "1.0.3-git",
+   "version": "1.0.4-git",
    "local": false,
    "nodes": {
     "inject": {
@@ -361,7 +361,7 @@
   },
   "node-red-contrib-socketcan": {
    "name": "node-red-contrib-socketcan",
-   "version": "1.0.0",
+   "version": "1.0.5",
    "local": true,
    "nodes": {
     "cansend": {
@@ -415,7 +415,7 @@
   },
   "node-red-node-tail": {
    "name": "node-red-node-tail",
-   "version": "0.0.3",
+   "version": "0.1.1",
    "local": false,
    "nodes": {
     "tail": {
