@@ -73,7 +73,7 @@ module.exports = function(RED) {
 		}
 
 		if ( sock ) {
-
+			var FlagCanFD=false;				// GT modif	
 			sock.start();
 
 			// Tell the world we are on the job
@@ -90,6 +90,7 @@ module.exports = function(RED) {
 				var frame={};
 				frame.ext = false;
 				frame.rtr = false;
+			
 
 				if ( typeof msg.payload == 'object' ) {
 
@@ -100,24 +101,35 @@ module.exports = function(RED) {
 					frame.id    |= (msg.payload.ext ? 1 : 0) << 31;
 					frame.dlc    = 0;
 					frame.data   = null;
+					frame.canfd  = msg.payload.canfd || 0;;					// GT modif
 					
 					// remote transmission request does not have any data
-					if ( !msg.payload.rtr ) {
-
+					if ( !msg.payload.rtr ) {								
 						frame.dlc    = msg.payload.dlc || 0;
-						if ( frame.dlc > 8 ) {
-							if (done) {
-								// Node-RED 1.0 compatible
-								done("Invalid CAN frame length " + 
-								frame.dlc);
-							} else {
-								// Node-RED 0.x compatible
-								node.error("Invalid CAN frame length " + 
-								frame.dlc, msg);
+						if (!frame.canfd){									// GT modif
+							if ( frame.dlc > 8 ) {
+								if (done) {
+									// Node-RED 1.0 compatible
+									done("Invalid CAN frame length " + 
+									frame.dlc);
+								} else {
+									// Node-RED 0.x compatible
+									node.error("Invalid CAN frame length " + 
+									frame.dlc, msg);
+								}							
 							}
-							
 						}
-
+						else {
+							if ( frame.dlc > 64 ) {
+								if (done) {
+										// Node-RED 1.0 compatible
+										done("Invalid CAN FD frame length " + frame.dlc);
+								} else {
+										// Node-RED 0.x compatible
+										node.error("Invalid CAN FD frame length " + frame.dlc, msg);
+								}
+							 }	
+						}
 						if ( Array.isArray(msg.payload.data) ) {
 							frame.data = Buffer.from(msg.payload.data); 
 						}
@@ -149,26 +161,25 @@ module.exports = function(RED) {
 					// <can_id>##<flags>{data}
 					// for CAN FD frames
 					if( msg.payload && 
-						(msg.payload.indexOf("##") != -1 ) ) {   // CAN FD frame
+						(msg.payload.indexOf("##") != -1 ) ) {   				// CAN FD frame
 						debuglog("FD Frame");
-						throw(new Error("CAN FD is not supported yet"));
-						// frame.id  = parseInt(msg.payload.split("##")[0],16);
-						// debuglog("frame.id " + frame.id);
-						// let data     = msg.payload.split("##")[1];
-						// debuglog("data " + data);
-						// frame.data   = Buffer.from(data,"hex");
-						// frame.dlc    = frame.data.length;
-						// if ( frame.dlc > 64 ) {
-
-						// 	if (done) {
-						//    		// Node-RED 1.0 compatible
-						//    		done("Invalid CAN FD frame length " + frame.dlc);
-						// 	} else {
-						//    		// Node-RED 0.x compatible
-						//    		node.error("Invalid CAN FD frame length " + frame.dlc, msg);
-						// 	}
-						
-						// }					 
+						// throw(new Error("CAN FD is not supported yet"));
+						 frame.id  = parseInt(msg.payload.split("##")[0],16);
+						 debuglog("frame.id " + frame.id);
+						 frame.canfd = true;									// GT modif	
+						 let data     = msg.payload.split("##")[1];
+						 debuglog("data " + data);
+						 frame.data   = Buffer.from(data,"hex");
+						 frame.dlc    = frame.data.length;
+						 if ( frame.dlc > 64 ) {
+						 	if (done) {
+						    		// Node-RED 1.0 compatible
+						    		done("Invalid CAN FD frame length " + frame.dlc);
+						 	} else {
+						    		// Node-RED 0.x compatible
+						    		node.error("Invalid CAN FD frame length " + frame.dlc, msg);
+						 	}
+						 }						 
 					}
 					else if( msg.payload && 
 						(msg.payload.indexOf("#") != -1 ) ) {
@@ -223,21 +234,32 @@ module.exports = function(RED) {
 							" data:" + Array.prototype.slice.call(frame.data,0) + 
 							" ext:"  + frame.ext +
 							" rtr:"  + frame.rtr );
+				// for CAN_FD we need to fulfill the buffer to have 4 bytes when DLC > 8
+				//var datafilling=frame.dlc;							//GT MODIF
+				if (frame.dlc>8){										//GT MODIF
+					if (frame.dlc %4 > 0)								//GT MODIF
+					{
+						var extension = (4 - (frame.dlc%4));			//GT MODIF : how many data to add
+						frame.dlc = frame.dlc + extension;				//GT MODIF : define the next size of the DLC
+						frame.data = Buffer.concat([frame.data ,Buffer.alloc(extension)],frame.dlc); 	// Fill empty data with null				
+					}
+				}				
+
 				
 				// Send the CAN frame			 	
 				try {
-					sock.send( frame );
-				}
-				catch (err) {
-					if (done) {
-						// Node-RED 1.0 compatible
-						done(err);
-					} else {
-						// Node-RED 0.x compatible
-						node.error(err, msg);
+						if (frame.canfd) sock.sendFD( frame );		//GT MODIF
+						else sock.send( frame );					//GT MODIF
 					}
-				}
-
+					catch (err) {
+						if (done) {
+							// Node-RED 1.0 compatible
+							done(err);
+						} else {
+							// Node-RED 0.x compatible
+							node.error(err, msg);
+						}
+					}				
 				if (done) {
 					done();
 				}

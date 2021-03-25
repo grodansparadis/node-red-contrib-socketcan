@@ -47,7 +47,7 @@
 
 <!-- Next, some simple help text is provided for the node.                   -->
 <script type="text/x-red" data-help-name="socketcan-in">
-   <p><b>socketcan-in</b> node is provided for sending CAN frames. You can send standard or extended id frames but currently not FD frames. 
+   <p><b>socketcan-in</b> node is provided for sending CAN frames. You can send standard or extended id frames , FD frames are supported. 
 
     Set up the interface to some real CAN hardware or use a virtual interface.</p>
 
@@ -61,6 +61,7 @@
 
 <pre>
 {
+    "canfd":false,
     "ext":false,
     "rtr":false,
     "canid":123,
@@ -69,6 +70,7 @@
 }
 </pre>
             <ul>     
+                <li> <b>canfd</b> - Define if the frame must be send as CANFD frame (if supported).</li>
                 <li> <b>ext</b> - Marks the message as an extended id message.</li>
                 <li> <b>rtr</b> - The message is a remote transmission request. No data should be specified in this case (set to null).</li>
                 <li> <b>canid</b> - The canid for the CAN message. Must be less then 0x7ff for a standard CAN message.</li>
@@ -96,6 +98,8 @@
 5AA#         - Standard frame no data
 1F334455#1122334455667788 - extended frame
 123#R         - for remote transmission request.
+123##         - FD frame no data
+123##AA       - FD frame standard
 </pre>
             </p>
         </dd>
