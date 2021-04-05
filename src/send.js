@@ -89,7 +89,6 @@ module.exports = function(RED) {
 				var frame={};
 				frame.ext = false;
 				frame.rtr = false;
-			
 
 				if ( typeof msg.payload == 'object' ) {
 
