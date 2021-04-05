@@ -91,12 +91,8 @@ module.exports = function(RED) {
 				msg.payload.canid     = frame.id; 
 				msg.payload.dlc       = frame.data.length;
 				msg.payload.rtr       = frame.rtr || false;
-				msg.payload.canfd_capable	  = frame.canfd ||false;				// GT modif
 				msg.payload.data = [];
 				//msg.payload.data.push(frame.data);
-				
-				// GT MODIF
-				// Check if data are from CAN_FD frame
 					
 				msg.payload.data =  Array.prototype.slice.call(frame.data, 0);
 				node.send(msg);
