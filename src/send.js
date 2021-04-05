@@ -73,7 +73,7 @@ module.exports = function(RED) {
 		}
 
 		if ( sock ) {
-			var FlagCanFD=false;				// GT modif	
+			var FlagCanFD=false;
 			sock.start();
 
 			// Tell the world we are on the job
@@ -101,12 +101,12 @@ module.exports = function(RED) {
 					frame.id    |= (msg.payload.ext ? 1 : 0) << 31;
 					frame.dlc    = 0;
 					frame.data   = null;
-					frame.canfd  = msg.payload.canfd || 0;;					// GT modif
+					frame.canfd  = msg.payload.canfd || 0;
 					
 					// remote transmission request does not have any data
 					if ( !msg.payload.rtr ) {								
 						frame.dlc    = msg.payload.dlc || 0;
-						if (!frame.canfd){									// GT modif
+						if (!frame.canfd){
 							if ( frame.dlc > 8 ) {
 								if (done) {
 									// Node-RED 1.0 compatible
@@ -166,7 +166,7 @@ module.exports = function(RED) {
 						// throw(new Error("CAN FD is not supported yet"));
 						 frame.id  = parseInt(msg.payload.split("##")[0],16);
 						 debuglog("frame.id " + frame.id);
-						 frame.canfd = true;									// GT modif	
+						 frame.canfd = true;	
 						 let data     = msg.payload.split("##")[1];
 						 debuglog("data " + data);
 						 frame.data   = Buffer.from(data,"hex");
@@ -235,21 +235,12 @@ module.exports = function(RED) {
 							" ext:"  + frame.ext +
 							" rtr:"  + frame.rtr );
 				// for CAN_FD we need to fulfill the buffer to have 4 bytes when DLC > 8
-				//var datafilling=frame.dlc;							//GT MODIF
-				if (frame.dlc>8){										//GT MODIF
-					if (frame.dlc %4 > 0)								//GT MODIF
-					{
-						var extension = (4 - (frame.dlc%4));			//GT MODIF : how many data to add
-						frame.dlc = frame.dlc + extension;				//GT MODIF : define the next size of the DLC
-						frame.data = Buffer.concat([frame.data ,Buffer.alloc(extension)],frame.dlc); 	// Fill empty data with null				
-					}
-				}				
+				//var datafilling=frame.dlc;
 
-				
 				// Send the CAN frame			 	
 				try {
-						if (frame.canfd) sock.sendFD( frame );		//GT MODIF
-						else sock.send( frame );					//GT MODIF
+						if (frame.canfd) sock.sendFD( frame );
+						else sock.send( frame );
 					}
 					catch (err) {
 						if (done) {
