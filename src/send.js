@@ -159,7 +159,7 @@ module.exports = function(RED) {
 					// <can_id>##<flags>{data}
 					// for CAN FD frames
 					if( msg.payload && 
-						(msg.payload.indexOf("##") != -1 ) ) {   				// CAN FD frame
+						(msg.payload.indexOf("##") != -1 ) ) {
 						debuglog("FD Frame");
 						// throw(new Error("CAN FD is not supported yet"));
 						 frame.id  = parseInt(msg.payload.split("##")[0],16);
