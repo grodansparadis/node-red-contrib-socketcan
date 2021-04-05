@@ -73,7 +73,6 @@ module.exports = function(RED) {
 		}
 
 		if ( sock ) {
-			var FlagCanFD=false;
 			sock.start();
 
 			// Tell the world we are on the job
