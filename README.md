@@ -26,7 +26,7 @@ or install in node-red palette.
 
 ![socketcan-in](./images/socketcan-in.png)
 
-<b>socketcan-in</b> node is provided for sending CAN frames. You can send standard or extended id frames but currently not FD frames. 
+<b>socketcan-in</b> node is provided for sending CAN frames. You can send standard or extended id frames, FD frames are supported. 
 
 Set up the interface to some real CAN hardware or use a virtual interface.
 
@@ -37,6 +37,7 @@ The CAN message is defined as a JSON object with the following payload format
 
 ```json
 {
+	"canfd":false,
 	"ext":false,
 	"rtr":false,
 	"canid":123,
@@ -48,7 +49,7 @@ The CAN message is defined as a JSON object with the following payload format
 * <b>ext</b> - Marks the message as an extended id message.
 * <b>rtr</b> - The message is a remote transmission request. No data should be specified in this case (set to null).
 * <b>canid</b> - The canid for the CAN message. Must be less then 0x7ff for a standard CAN message.
-* <b>dlc</b> - Number of databytes, 0-8.
+* <b>dlc</b> - Number of databytes, 0-64.
 * <b>data</b> - An array, comma separated list or buffer with data bytes. Set to null if no data.
 
 #### String formated messages
@@ -70,6 +71,8 @@ The CAN message is defined as a string with the following payload format
 5AA#         - Standard frame no data
 1F334455#1122334455667788 - extended frame
 123#R         - for remote transmission request.
+123##         - FD frame no data
+123##AA       - FD frame standard
 ```
 
 ## Receiving CAN frames
