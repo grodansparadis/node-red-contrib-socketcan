@@ -93,6 +93,7 @@ module.exports = function(RED) {
 				msg.payload.rtr       = frame.rtr || false;
 				msg.payload.data = [];
 				//msg.payload.data.push(frame.data);
+					
 				msg.payload.data =  Array.prototype.slice.call(frame.data, 0);
 				node.send(msg);
 			});
