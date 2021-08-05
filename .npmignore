@@ -1,3 +1,5 @@
 .node-red
 .git
+.github
+.vscode
 .gitignore
