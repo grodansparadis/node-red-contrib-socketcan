@@ -117,7 +117,7 @@ $ sudo ip link set up vcan0
 install can-utils with
 
 ```bash
-sudo apt install canuils
+sudo apt install can-utils
 ```
 
 Receive CAN frames with
