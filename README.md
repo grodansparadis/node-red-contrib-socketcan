@@ -45,7 +45,7 @@ The CAN message is defined as a JSON object with the following payload format
 	"data":[1,2,3,4,5]}
 }
 ```
-
+* <b>canfd</b> - Marks the frame as a CAN-FD frame.
 * <b>ext</b> - Marks the message as an extended id message.
 * <b>rtr</b> - The message is a remote transmission request. No data should be specified in this case (set to null).
 * <b>canid</b> - The canid for the CAN message. Must be less then 0x7ff for a standard CAN message.
