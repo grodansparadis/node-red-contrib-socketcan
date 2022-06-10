@@ -97,22 +97,21 @@ module.exports = function(RED) {
 					frame.rtr    = msg.payload.rtr || false;
 					frame.id     = msg.payload.canid || 0;
 					frame.id    |= (msg.payload.ext ? 1 : 0) << 31;
-					frame.dlc    = 0;
+					frame.dlc    = msg.payload.dlc || 0;
 					frame.data = Buffer.from('');
 					frame.canfd  = msg.payload.canfd || false;
 					
 					// remote transmission request does not have any data
 					if ( !msg.payload.rtr ) {								
 						
-            frame.dlc    = msg.payload.dlc || 0;
-
 						if (!frame.canfd){
 							if ( frame.dlc > 8 ) {
 								if (done) {
 									// Node-RED 1.0 compatible
 									done("Invalid CAN frame length " + 
 									frame.dlc);
-								} else {
+								} 
+                else {
 									// Node-RED 0.x compatible
 									node.error("Invalid CAN frame length " + 
 									frame.dlc, msg);
@@ -128,7 +127,7 @@ module.exports = function(RED) {
 										// Node-RED 0.x compatible
 										node.error("Invalid CAN FD frame length " + frame.dlc, msg);
 								}
-							 }	
+							}	
 						}
 
             
@@ -147,7 +146,8 @@ module.exports = function(RED) {
 							if (done) {
 								// Node-RED 1.0 compatible
 								done("Error: CAN data has unknown format.");
-							} else {
+							} 
+              else {
 								// Node-RED 0.x compatible
 								node.error("Error: CAN data has unknown format.", msg);
 							}
@@ -176,16 +176,17 @@ module.exports = function(RED) {
             frame.dlc    = frame.data.length;
             if ( frame.dlc > 64 ) {
               if (done) {
-                    // Node-RED 1.0 compatible
-                    done("Invalid CAN FD frame length " + frame.dlc);
+                // Node-RED 1.0 compatible
+                done("Invalid CAN FD frame length " + frame.dlc);
               } 
               else {
-                    // Node-RED 0.x compatible
-                    node.error("Invalid CAN FD frame length " + frame.dlc, msg);
+                // Node-RED 0.x compatible
+                node.error("Invalid CAN FD frame length " + frame.dlc, msg);
               }
             }						 
 					}
 					else if( msg.payload && (msg.payload.indexOf("#") != -1 ) ) {
+
             debuglog("CAN Frame");
             frame.canfd = false;
             let id = msg.payload.split("#")[0];
@@ -213,12 +214,14 @@ module.exports = function(RED) {
               }
             }
             else {
-              // Remote transmission request
-              debuglog("Remote transmission request");
+              // Remote transmission request  id#R{len}
+              debuglog("Remote transmission request ", msg.payload);
+              let dlc  = msg.payload.split("#R")[1];
+              debuglog("dlc = ", dlc);
+              frame.dlc = parseInt(dlc,10);
               frame.canfd = false;
-              frame.dlc  = 0;
-              frame.rtr = true;   
-              frame.data = Buffer.from('');          
+              frame.rtr = true;                  
+              frame.data = Buffer.from('');             
             }
 					}
 					else {
@@ -237,6 +240,13 @@ module.exports = function(RED) {
         else {
 					debuglog("Message format = ??????");
 				}
+
+        // node socketcan lib need data to send dlc other than zero for frame
+        // so we create some data. 
+        // Does not matter what the buffer holds as it is not sent
+        if (frame.rtr && (frame.dlc > 0) ) {
+          frame.data = Buffer.alloc(frame.dlc,0);
+        }
 
 				debuglog("canid:" + frame.id + 
 							" dlc:"  + frame.dlc + 
