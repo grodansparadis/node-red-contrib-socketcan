@@ -130,7 +130,7 @@ module.exports = function(RED) {
 							}	
 						}
 
-            // Added fix for buffer problem proposed by nonujigu
+            // Added fix for buffer problem (#22) proposed by nonujigu
 						if ( Array.isArray(msg.payload.data) || Buffer.isBuffer(msg.payload.data) ) {
 							frame.data = Buffer.from(msg.payload.data); 
 						}
