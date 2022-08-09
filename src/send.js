@@ -130,8 +130,8 @@ module.exports = function(RED) {
 							}	
 						}
 
-            
-						if ( Array.isArray(msg.payload.data) ) {
+            // Added fix for buffer problem proposed by nonujigu
+						if ( Array.isArray(msg.payload.data) || Buffer.isBuffer(msg.payload.data) ) {
 							frame.data = Buffer.from(msg.payload.data); 
 						}
 						else if ( typeof msg.payload.data === 'string' ) {
