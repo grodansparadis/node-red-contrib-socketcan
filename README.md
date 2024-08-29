@@ -320,3 +320,6 @@ Issue
 export NODE_DEBUG=socketcan-in socketcan-out
 ```
 before starting node-red to get extra debug info for both the socketcan-in and socketcan-out node.
+
+---
+Copyright © 2020-2024 Ake Hedman, Grodans Paradis AB - MIT License
