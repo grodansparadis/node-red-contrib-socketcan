@@ -5,8 +5,8 @@
   "dependencies": {
     "bcrypt": ">=5.0.1",
     "minimist": ">=1.2.6",
-    "node-red": "^3.0.2",
-    "socketcan": "^3.0.0",
+    "node-red": ">=3.0.2",
+    "socketcan": ">=3.0.0",
     "util": ">=0.12.4"
   },
   "homepage": "https://github.com/grodansparadis/node-red-contrib-socketcan",
