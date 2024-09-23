@@ -7,7 +7,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright © 2020-2022 Ake Hedman, Grodans Paradis AB
+// Copyright © 2020-2024 Ake Hedman, Grodans Paradis AB
 // <info@grodansparadis.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -95,6 +95,7 @@ module.exports = function(RED) {
 				//msg.payload.data.push(frame.data);
 					
 				msg.payload.data =  Array.prototype.slice.call(frame.data, 0);
+        msg.payload.rawData = frame.data;
 				node.send(msg);
 			});
 			
