@@ -1,0 +1,240 @@
+[
+    {
+        "id": "b74b4d47d3ac26da",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "aaa78516255f5fce",
+        "type": "socketcan-config",
+        "interface": "vcan0"
+    },
+    {
+        "id": "928c345a1c3f5bb9",
+        "type": "socketcan-out",
+        "z": "b74b4d47d3ac26da",
+        "name": "socketcan-out",
+        "config": "aaa78516255f5fce",
+        "x": 490,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c815bde2761e7b32",
+        "type": "inject",
+        "z": "b74b4d47d3ac26da",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "123#112233",
+        "payloadType": "str",
+        "x": 330,
+        "y": 380,
+        "wires": [
+            [
+                "2577f3a0cd9107e2"
+            ]
+        ]
+    },
+    {
+        "id": "2577f3a0cd9107e2",
+        "type": "socketcan-in",
+        "z": "b74b4d47d3ac26da",
+        "name": "socketcan-in",
+        "config": "aaa78516255f5fce",
+        "x": 510,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "c7a9659205697067",
+        "type": "inject",
+        "z": "b74b4d47d3ac26da",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "123#R",
+        "payloadType": "str",
+        "x": 330,
+        "y": 420,
+        "wires": [
+            [
+                "2577f3a0cd9107e2"
+            ]
+        ]
+    },
+    {
+        "id": "a57c1286b80d3e39",
+        "type": "inject",
+        "z": "b74b4d47d3ac26da",
+        "name": "remote dlc=0",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"canfd\":false,\"ext\":false,\"rtr\":true,\"canid\":1793,\"dlc\":0,\"data\":null}",
+        "payloadType": "json",
+        "x": 330,
+        "y": 460,
+        "wires": [
+            [
+                "2577f3a0cd9107e2"
+            ]
+        ]
+    },
+    {
+        "id": "4cf08070ee7aa0e8",
+        "type": "inject",
+        "z": "b74b4d47d3ac26da",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"canfd\":false,\"ext\":false,\"rtr\":false,\"canid\":123,\"dlc\":5,\"data\":[1,2,3,4,5]}",
+        "payloadType": "json",
+        "x": 310,
+        "y": 500,
+        "wires": [
+            [
+                "2577f3a0cd9107e2"
+            ]
+        ]
+    },
+    {
+        "id": "3e189d4b97972fa8",
+        "type": "inject",
+        "z": "b74b4d47d3ac26da",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"canfd\":false,\"ext\":false,\"rtr\":false,\"canid\":123,\"dlc\":0,\"data\":null}",
+        "payloadType": "json",
+        "x": 310,
+        "y": 540,
+        "wires": [
+            [
+                "2577f3a0cd9107e2"
+            ]
+        ]
+    },
+    {
+        "id": "c6057f2c490e1e7d",
+        "type": "inject",
+        "z": "b74b4d47d3ac26da",
+        "name": "RTR -dlc=2",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"canfd\":false,\"ext\":false,\"rtr\":true,\"canid\":1793,\"dlc\":2,\"data\":[1,2]}",
+        "payloadType": "json",
+        "x": 330,
+        "y": 600,
+        "wires": [
+            [
+                "2577f3a0cd9107e2"
+            ]
+        ]
+    },
+    {
+        "id": "67a65b4feeae577a",
+        "type": "inject",
+        "z": "b74b4d47d3ac26da",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "123#R5",
+        "payloadType": "str",
+        "x": 310,
+        "y": 640,
+        "wires": [
+            [
+                "2577f3a0cd9107e2"
+            ]
+        ]
+    }
+]

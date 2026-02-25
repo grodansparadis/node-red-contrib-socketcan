@@ -7,7 +7,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright © 2020-2022 Ake Hedman, Grodans Paradis AB
+// Copyright © 2020-2026 Ake Hedman, Grodans Paradis AB
 // <info@grodansparadis.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -30,93 +30,104 @@
 //
 
 module.exports = function(RED) {
+  'use strict';
 
-	"use strict";
-	
-	// Debug:
-	// https://nodejs.org/api/util.html
-	// export NODE_DEBUG=socketcan-out  for all debug events
-	const util = require('util');
-	const debuglog = util.debuglog('socketcan-out');
-	
-    var can = require('socketcan');
+  // Debug:
+  // https://nodejs.org/api/util.html
+  // export NODE_DEBUG=socketcan-out  for all debug events
+  const util = require('util');
+  const debuglog = util.debuglog('socketcan-out');
 
-    function SocketcanReceiveNode(config) {
+  var can = require('socketcan');
 
-		RED.nodes.createNode(this,config);
-		
-		this.config = RED.nodes.getNode(config.config);
+  function SocketcanReceiveNode(config) {
+    RED.nodes.createNode(this, config);
 
-		if(this.config) {
-			this.interface = this.config.interface;
-		}
-		else {
-			return;	// Do nothing
-			//this.interface="vcan0";
-		}
+    this.config = RED.nodes.getNode(config.config);
 
-		debuglog("CAN interface = " + this.interface);
-
-		var node = this;
-
-		// Tell the world that we are connecting to the interface
-		this.status({fill:"yellow",shape:"dot",text:"connecting... " + "<" + this.interface + ">"});
-
-		var sock;
-		try {
-			// Create raw interface with timestamp
-			sock = can.createRawChannel("" + this.interface, {
-				timestamps: true
-			});
-		} catch(err) { 
-			// Did not handle this interface
-			node.error("Error: " + err.message + this.interface);
-			this.status({fill:"red",shape:"dot",text: err.message + "<" + this.interface + ">" });
-		}
-		if (sock) {
-
-			// Start things up
-			sock.start();
-
-			// Tell the world we are on
-			this.status({fill:"green",shape:"dot",text:"connected " + "<" + this.interface + ">" });
-		
-			// Add a message listener
-			sock.addListener("onMessage",function(frame) {
-				debuglog("CAN message :",frame);
-				var msg={};
-				msg.payload = {};
-				msg.payload.timestamp = frame.timestamp || new Date().getTime();
-				msg.payload.ext       = frame.ext || false;
-				msg.payload.canid     = frame.id; 
-				msg.payload.dlc       = frame.data.length;
-				msg.payload.rtr       = frame.rtr || false;
-				msg.payload.data = [];
-				//msg.payload.data.push(frame.data);
-					
-				msg.payload.data =  Array.prototype.slice.call(frame.data, 0);
-				node.send(msg);
-			});
-			
-			///////////////////////////////////////////////////////////////////
-			//                          on close	
-			///////////////////////////////////////////////////////////////////
-			this.on("close", function(removed, done) {
-				
-				sock.stop();
-				
-				// Tell the worl we had gone down
-				this.status({fill:"red",shape:"dot",text:"disconnected."});
-
-				if (removed) {
-					// This node has been deleted
-				} else {
-					// This node is being restarted
-				}
-			
-				done();
-			});	
-		}
+    if (this.config) {
+      this.interface = this.config.interface;
+    } else {
+      return;  // Do nothing
+               // this.interface="vcan0";
     }
-    RED.nodes.registerType("socketcan-out",SocketcanReceiveNode);
+
+    debuglog('CAN interface = ' + this.interface);
+
+    var node = this;
+
+    // Tell the world that we are connecting to the interface
+    this.status({
+      fill: 'yellow',
+      shape: 'dot',
+      text: 'connecting... ' +
+          '<' + this.interface + '>'
+    });
+
+    var sock;
+    try {
+      // Create raw interface with timestamp
+      sock = can.createRawChannel('' + this.interface, {timestamps: true, receive_error_frames: true});
+    } catch (err) {
+      // Did not handle this interface
+      node.error('Error: ' + err.message + this.interface);
+      this.status({
+        fill: 'red',
+        shape: 'dot',
+        text: err.message + '<' + this.interface + '>'
+      });
+    }
+    if (sock) {
+      // Start things up
+      sock.start();
+
+      // Tell the world we are on
+      this.status({
+        fill: 'green',
+        shape: 'dot',
+        text: 'connected ' +
+            '<' + this.interface + '>'
+      });
+
+      // Add a message listener
+      sock.addListener('onMessage', function(frame) {
+        debuglog('CAN message :', frame);
+        var msg = {};
+        msg.payload = {};
+        msg.payload.timestamp = frame.timestamp || new Date().getTime();
+        msg.payload.ext = frame.ext || false;
+        msg.payload.canid = frame.id;
+        msg.payload.dlc = frame.data.length;
+        msg.payload.rtr = frame.rtr || false;
+        msg.payload.data = [];
+        msg.payload.err = frame.err || false;
+        // msg.payload.data.push(frame.data);
+
+        msg.payload.data = Array.prototype.slice.call(frame.data, 0);
+        msg.payload.rawData = frame.data;
+        node.send(msg);
+      });
+
+      
+
+      ///////////////////////////////////////////////////////////////////
+      //                          on close
+      ///////////////////////////////////////////////////////////////////
+      this.on('close', function(removed, done) {
+        sock.stop();
+
+        // Tell the worl we had gone down
+        this.status({fill: 'red', shape: 'dot', text: 'disconnected.'});
+
+        if (removed) {
+          // This node has been deleted
+        } else {
+          // This node is being restarted
+        }
+
+        done();
+      });
+    }
+  }
+  RED.nodes.registerType('socketcan-out', SocketcanReceiveNode);
 }
