@@ -116,7 +116,7 @@ module.exports = function(RED) {
       this.on('close', function(removed, done) {
         sock.stop();
 
-        // Tell the worl we had gone down
+        // Tell the world we had gone down
         this.status({fill: 'red', shape: 'dot', text: 'disconnected.'});
 
         if (removed) {
