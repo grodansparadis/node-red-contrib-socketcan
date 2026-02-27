@@ -54,8 +54,6 @@ module.exports = function(RED) {
 
     debuglog('CAN interface = ' + this.interface);
 
-    var node = this;
-
     // Tell the world that we are connecting to the interface
     this.status({
       fill: 'yellow',
@@ -64,70 +62,74 @@ module.exports = function(RED) {
           '<' + this.interface + '>'
     });
 
+    var node = this;
     var sock;
-    try {
-      // Create raw interface with timestamp
-      sock = can.createRawChannel('' + this.interface, {timestamps: true, receive_error_frames: true});
-    } catch (err) {
-      // Did not handle this interface
-      node.error('Error: ' + err.message + this.interface);
-      this.status({
-        fill: 'red',
-        shape: 'dot',
-        text: err.message + '<' + this.interface + '>'
-      });
+    var reconnectInterval = 1000; // 1 second
+
+    function onMessage(frame) {
+      debuglog('CAN message :', frame);
+      var msg = {};
+      msg.payload = {};
+      msg.payload.timestamp = frame.timestamp || new Date().getTime();
+      msg.payload.ext = frame.ext || false;
+      msg.payload.canid = frame.id;
+      msg.payload.dlc = frame.data.length;
+      msg.payload.rtr = frame.rtr || false;
+      msg.payload.data = [];
+      msg.payload.err = frame.err || false;
+      msg.payload.data = Array.prototype.slice.call(frame.data, 0);
+      msg.payload.rawData = frame.data;
+      node.send(msg);
     }
-    if (sock) {
-      // Start things up
-      sock.start();
 
-      // Tell the world we are on
-      this.status({
-        fill: 'green',
-        shape: 'dot',
-        text: 'connected ' +
-            '<' + this.interface + '>'
-      });
+    function onStopped() {
+      sock = null;
 
-      // Add a message listener
-      sock.addListener('onMessage', function(frame) {
-        debuglog('CAN message :', frame);
-        var msg = {};
-        msg.payload = {};
-        msg.payload.timestamp = frame.timestamp || new Date().getTime();
-        msg.payload.ext = frame.ext || false;
-        msg.payload.canid = frame.id;
-        msg.payload.dlc = frame.data.length;
-        msg.payload.rtr = frame.rtr || false;
-        msg.payload.data = [];
-        msg.payload.err = frame.err || false;
-        // msg.payload.data.push(frame.data);
+      debuglog('Socket stopped, reconnecting');
+      node.status({fill:'yellow',shape:'dot',text:'reconnecting...<' + node.interface + '>'});
 
-        msg.payload.data = Array.prototype.slice.call(frame.data, 0);
-        msg.payload.rawData = frame.data;
-        node.send(msg);
-      });
+      setTimeout(function() {
+        initSocket();
+      }, reconnectInterval);
+    }
 
-      
+    function initSocket() {
+      try {
+        sock = can.createRawChannel('' + node.interface, {timestamps: true, receive_error_frames: true});
+        sock.addListener('onMessage', onMessage);
+        sock.addListener('onStopped', onStopped);
+        sock.start();
 
-      ///////////////////////////////////////////////////////////////////
-      //                          on close
-      ///////////////////////////////////////////////////////////////////
-      this.on('close', function(removed, done) {
+        // Delay status update to ensure socket is fully started and is not reconnecting
+        setTimeout(function() {
+          if (sock) {
+            node.status({fill:'green',shape:'dot',text:'connected <' + node.interface + '>'});
+          }
+        }, 500);
+        
+        debuglog('Socket created and started on ' + node.interface);
+      } catch (err) {
+        node.error('Error: ' + err.message + node.interface);
+        node.status({fill:'red',shape:'dot',text:err.message + '<' + node.interface + '>'});
+        debuglog('Error creating socket on ' + node.interface + ': ' + err.message);
+        return;
+      }
+    }
+
+    // Initial connect
+    initSocket();
+
+    ///////////////////////////////////////////////////////////////////
+    //                          on close
+    ///////////////////////////////////////////////////////////////////
+    this.on('close', function(removed, done) {
+      if (sock) {
         sock.stop();
-
-        // Tell the world we had gone down
-        this.status({fill: 'red', shape: 'dot', text: 'disconnected.'});
-
-        if (removed) {
-          // This node has been deleted
-        } else {
-          // This node is being restarted
-        }
-
-        done();
-      });
-    }
+        sock = null;
+      }
+      node.status({fill:'red',shape:'dot',text:'disconnected.'});
+      done();
+    });
   }
   RED.nodes.registerType('socketcan-out', SocketcanReceiveNode);
 }
