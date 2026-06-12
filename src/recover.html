@@ -1,0 +1,83 @@
+<!--
+///////////////////////////////////////////////////////////////////////////
+// recover.html
+//
+// socketcan manual recovery node.
+//
+// This file is part of the VSCP (https://www.vscp.org)
+//
+// The MIT License (MIT)
+//
+// Copyright © 2020-2026 Ake Hedman, Grodans Paradis AB
+// <info@grodansparadis.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+-->
+
+<script type="text/x-red" data-template-name="socketcan-recover">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-config"><i class="fa fa-random"></i> Config</label>
+        <input type="text" id="node-input-config" placeholder="Config">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="socketcan-recover">
+    <p><b>socketcan-recover</b> manually asks socketcan nodes using the selected config to stop their current socket and reconnect.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dd>Any input message starts manual recovery.</dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <ol class="node-ports">
+        <li>Recovery request
+            <dl class="message-properties">
+                <dt>socketcan <span class="property-type">object</span></dt>
+                <dd>Contains interface, recoveryRequested, reason, and timestamp.</dd>
+            </dl>
+        </li>
+    </ol>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('socketcan-recover',{
+        category: 'network',
+        color: '#bbff33',
+        defaults: {
+            name: {value:"socketcan-recover"},
+            config: {value:"",type:"socketcan-config",required:true}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "bridge.png",
+        label: function() {
+            return this.name || "socketcan-recover";
+        },
+        labelStyle: function() {
+            return this.name ? "node_label_italic" : "";
+        }
+    });
+</script>

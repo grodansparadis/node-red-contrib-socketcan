@@ -64,6 +64,8 @@ module.exports = function(RED) {
 
     var node = this;
     var sock;
+    var reconnectTimer;
+    var closing = false;
     var reconnectInterval = 1000; // 1 second
 
     function onMessage(frame) {
@@ -82,38 +84,114 @@ module.exports = function(RED) {
       node.send(msg);
     }
 
-    function onStopped() {
+    function stopSocketOnly() {
+      if (!sock) {
+        return;
+      }
+
+      var currentSock = sock;
       sock = null;
 
-      debuglog('Socket stopped, reconnecting');
+      if (currentSock.removeListener) {
+        currentSock.removeListener('onMessage', onMessage);
+      }
+
+      try {
+        currentSock.stop();
+      } catch (err) {
+        debuglog('Error stopping socket on ' + node.interface + ': ' + err.message);
+      }
+    }
+
+    function recoverSocket(reason) {
+      if (closing) {
+        return;
+      }
+
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
+
+      debuglog('Manual socket recovery on ' + node.interface + ': ' + reason);
       node.status({fill:'yellow',shape:'dot',text:'reconnecting...<' + node.interface + '>'});
 
-      setTimeout(function() {
+      stopSocketOnly();
+
+      reconnectTimer = setTimeout(function() {
+        reconnectTimer = null;
         initSocket();
       }, reconnectInterval);
     }
 
+    function isUnsupportedOptionError(err) {
+      return err && err.message && err.message.toLowerCase().indexOf('not supported') !== -1;
+    }
+
+    function startChannel(receiveErrorFrames) {
+      var channelOptions = receiveErrorFrames ? {timestamps: true, receive_error_frames: true} : true;
+      var channel = can.createRawChannel('' + node.interface, channelOptions);
+
+      channel.addListener('onMessage', onMessage);
+
+      try {
+        channel.start();
+      } catch (err) {
+        if (channel.removeListener) {
+          channel.removeListener('onMessage', onMessage);
+        }
+
+        try {
+          channel.stop();
+        } catch (stopErr) {
+          debuglog('Error stopping failed socket on ' + node.interface + ': ' + stopErr.message);
+        }
+
+        throw err;
+      }
+
+      sock = channel;
+    }
+
     function initSocket() {
       try {
-        sock = can.createRawChannel('' + node.interface, {timestamps: true, receive_error_frames: true});
-        sock.addListener('onMessage', onMessage);
-        sock.addListener('onStopped', onStopped);
-        sock.start();
-
-        // Delay status update to ensure socket is fully started and is not reconnecting
-        setTimeout(function() {
-          if (sock) {
-            node.status({fill:'green',shape:'dot',text:'connected <' + node.interface + '>'});
-          }
-        }, 500);
-        
-        debuglog('Socket created and started on ' + node.interface);
+        startChannel(true);
       } catch (err) {
-        node.error('Error: ' + err.message + node.interface);
-        node.status({fill:'red',shape:'dot',text:err.message + '<' + node.interface + '>'});
-        debuglog('Error creating socket on ' + node.interface + ': ' + err.message);
-        return;
+        if (isUnsupportedOptionError(err)) {
+          debuglog('CAN error frames not supported on ' + node.interface + ', retrying without error frames');
+
+          try {
+            startChannel(false);
+          } catch (fallbackErr) {
+            err = fallbackErr;
+          }
+        }
+
+        if (!sock) {
+          node.error('Error: ' + err.message + node.interface);
+          node.status({fill:'red',shape:'dot',text:err.message + '<' + node.interface + '>'});
+          debuglog('Error creating socket on ' + node.interface + ': ' + err.message);
+          return;
+        }
       }
+
+      // Delay status update to ensure socket is fully started and is not reconnecting
+      setTimeout(function() {
+        if (sock) {
+          node.status({fill:'green',shape:'dot',text:'connected <' + node.interface + '>'});
+        }
+      }, 500);
+
+      debuglog('Socket created and started on ' + node.interface);
+    }
+
+    function onRecoverSocket(event) {
+      var reason = event && event.reason ? event.reason : 'manual recovery';
+      recoverSocket(reason);
+    }
+
+    if (this.config.on) {
+      this.config.on('recover-socket', onRecoverSocket);
     }
 
     // Initial connect
@@ -123,10 +201,18 @@ module.exports = function(RED) {
     //                          on close
     ///////////////////////////////////////////////////////////////////
     this.on('close', function(removed, done) {
-      if (sock) {
-        sock.stop();
-        sock = null;
+      closing = true;
+
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
       }
+
+      if (node.config && node.config.removeListener) {
+        node.config.removeListener('recover-socket', onRecoverSocket);
+      }
+
+      stopSocketOnly();
       node.status({fill:'red',shape:'dot',text:'disconnected.'});
       done();
     });

@@ -38,7 +38,14 @@ module.exports = function(RED) {
    
       RED.nodes.createNode(this,config);
       this.interface = config.interface;
+
+      this.recoverSockets = function(reason) {
+         this.emit("recover-socket", {
+            interface: this.interface,
+            reason: reason || "manual recovery",
+            timestamp: Date.now()
+         });
+      };
    }
    RED.nodes.registerType("socketcan-config",SocketcanConfigNode);
 }
-
