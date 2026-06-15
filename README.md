@@ -2,6 +2,8 @@
 
 ![socketcan](./images/node-red-contrib-socketcan.png)
 
+Credits: Built upon [https://github.com/sebi2k1/node-can](https://github.com/sebi2k1/node-can) which is a very good nodejs socketcan implementation. Thanks to Sebastian Hildebrandt for that.
+
 This is a couple of nodes to read CAN frames from and send CAN frames to a CAN bus using socketcan. [Socketcan](https://www.kernel.org/doc/Documentation/networking/can.txt) is the standard CAN subsystem on Linux. Socketcan is not available on Windows.
 
 This project is inspired by [node-red-contrib-canbus](https://flows.nodered.org/node/node-red-contrib-canbus) (Rajesh Sola <rajeshsola@gmail.com>) which almost did what I needed but not quite.
@@ -131,6 +133,49 @@ if (msg.payload.err) {
       // etc...
   }
 }
+```
+
+## Manual recovery
+
+![socketcan-recover](./images/socketcan-recover.png)
+
+The **socketcan-recover** node allows you to manually trigger a socket reconnect on a CAN interface without restarting Node-RED. When triggered, it instructs all `socketcan-in` and `socketcan-out` nodes sharing the same config to drop their current socket connection and reconnect.
+
+This is useful when a CAN bus goes into a bus-off state or otherwise becomes unresponsive, and you want to recover programmatically — for example, from an error-frame handler or a scheduled watchdog.
+
+### Input
+
+Any message triggers recovery. You can optionally supply a reason string:
+
+| Property | Type | Description |
+|---|---|---|
+| `msg.reason` | string | Optional reason for the recovery (logged/passed through). |
+| `msg.payload` | string or object | If `msg.reason` is not set, a string payload or `msg.payload.reason` is used as the reason. |
+
+### Output
+
+The input message is forwarded with an added `msg.socketcan` object:
+
+```json
+{
+  "interface": "vcan0",
+  "recoveryRequested": true,
+  "reason": "manual recovery",
+  "timestamp": 1718400000000
+}
+```
+
+### Example: recover on bus-off
+
+Wire a **socketcan-out** (receive) node into a **function** node that checks for bus-off errors, then connect it to a **socketcan-recover** node on the same config:
+
+```javascript
+// Function node: detect bus-off and trigger recovery
+if (msg.payload.err && msg.payload.canid === 0x00000040) {
+    msg.reason = "bus-off detected";
+    return msg;
+}
+return null;
 ```
 
 ## Example flow
@@ -349,6 +394,13 @@ Issue
 export NODE_DEBUG=socketcan-in socketcan-out
 ```
 before starting node-red to get extra debug info for both the socketcan-in and socketcan-out node.
+
+Issue
+
+``` bash
+export NODE_DEBUG=socketcan-recover
+```
+before starting node-red to get extra debug info for the socketcan-recover node.
 
 ---
 Copyright © 2020-2026 Ake Hedman, Grodans Paradis AB - MIT License
