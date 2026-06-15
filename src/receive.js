@@ -157,20 +157,22 @@ module.exports = function(RED) {
       try {
         startChannel(true);
       } catch (err) {
+        var connectError = err;
+
         if (isUnsupportedOptionError(err)) {
           debuglog('CAN error frames not supported on ' + node.interface + ', retrying without error frames');
 
           try {
             startChannel(false);
           } catch (fallbackErr) {
-            err = fallbackErr;
+            connectError = fallbackErr;
           }
         }
 
         if (!sock) {
-          node.error('Error: ' + err.message + node.interface);
-          node.status({fill:'red',shape:'dot',text:err.message + '<' + node.interface + '>'});
-          debuglog('Error creating socket on ' + node.interface + ': ' + err.message);
+          node.error('Error: ' + connectError.message + node.interface);
+          node.status({fill:'red',shape:'dot',text:connectError.message + '<' + node.interface + '>'});
+          debuglog('Error creating socket on ' + node.interface + ': ' + connectError.message);
           return;
         }
       }
