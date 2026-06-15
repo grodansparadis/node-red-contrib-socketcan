@@ -25,6 +25,7 @@
     "nodes": {
       "cansend": "src/send.js",
       "canreceive": "src/receive.js",
+      "canrecover": "src/recover.js",
       "canconfig": "src/config.js"
     }
   },

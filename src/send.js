@@ -63,21 +63,84 @@ module.exports = function(RED) {
 		this.status({fill:"yellow",shape:"dot",text:"connecting... " + "<" + this.interface + ">"});
 
 		var sock;
+		var reconnectTimer;
+		var closing = false;
+		var reconnectInterval = 1000; // 1 second
 
-		try {
-			sock = can.createRawChannel("" + this.interface, true);
-		} catch(err) {
-			// Did not handle this interface
-			node.error("Error: " + err.message + " <" + this.interface +">");
-			this.status({fill:"red",shape:"dot",text: err.message + " <" + this.interface + ">" });
+		function createSocket() {
+			try {
+				sock = can.createRawChannel("" + node.interface, true);
+			} catch(err) {
+				// Did not handle this interface
+				node.error("Error: " + err.message + " <" + node.interface +">");
+				node.status({fill:"red",shape:"dot",text: err.message + " <" + node.interface + ">" });
+			}
 		}
 
-		if ( sock ) {
-			sock.start();
+		function startSocket() {
+			if (sock) {
+				try {
+					sock.start();
 
-			// Tell the world we are on the job
-			this.status({fill:"green",shape:"dot",text:"connected " + "<" + this.interface + ">" });
-		
+					// Tell the world we are on the job
+					node.status({fill:"green",shape:"dot",text:"connected " + "<" + node.interface + ">" });
+				}
+				catch (err) {
+					node.error("Error: " + err.message + " <" + node.interface +">");
+					node.status({fill:"red",shape:"dot",text: err.message + " <" + node.interface + ">" });
+					stopSocketOnly();
+				}
+			}
+		}
+
+		function stopSocketOnly() {
+			if (!sock) {
+				return;
+			}
+
+			try {
+				sock.stop();
+			} catch (err) {
+				debuglog("Error stopping socket on " + node.interface + ": " + err.message);
+			}
+
+			sock = null;
+		}
+
+		function recoverSocket(reason) {
+			if (closing) {
+				return;
+			}
+
+			if (reconnectTimer) {
+				clearTimeout(reconnectTimer);
+				reconnectTimer = null;
+			}
+
+			debuglog("Manual socket recovery on " + node.interface + ": " + reason);
+			node.status({fill:"yellow",shape:"dot",text:"reconnecting...<" + node.interface + ">"});
+
+			stopSocketOnly();
+
+			reconnectTimer = setTimeout(function() {
+				reconnectTimer = null;
+				createSocket();
+				startSocket();
+			}, reconnectInterval);
+		}
+
+		function onRecoverSocket(event) {
+			var reason = event && event.reason ? event.reason : "manual recovery";
+			recoverSocket(reason);
+		}
+
+		if (this.config.on) {
+			this.config.on("recover-socket", onRecoverSocket);
+		}
+
+		createSocket();
+		startSocket();
+
 			///////////////////////////////////////////////////////////////////
 			//                         on input	
 			///////////////////////////////////////////////////////////////////
@@ -258,6 +321,18 @@ module.exports = function(RED) {
 				//var datafilling=frame.dlc;
 
 				// Send the CAN frame			 	
+				if (!sock) {
+					var notConnectedError = new Error("CAN socket not connected <" + node.interface + ">");
+
+					if (done) {
+						done(notConnectedError);
+					}
+					else {
+						node.error(notConnectedError, msg);
+					}
+					return;
+				}
+
 				try {
           if (frame.canfd) {
             sock.sendFD(frame);
@@ -270,6 +345,7 @@ module.exports = function(RED) {
           if (done) {
             // Node-RED 1.0 compatible
             done(err);
+						return;
           } 
           else {
             // Node-RED 0.x compatible
@@ -281,26 +357,36 @@ module.exports = function(RED) {
 				}
 
 			});
-		
-			///////////////////////////////////////////////////////////////////
-			//                     on close	
-			///////////////////////////////////////////////////////////////////
-			this.on("close", function(removed, done) {
-				// Stop operations
-				sock.stop();
-				
-				// Tell the world we had gone down
-				this.status({fill:"red",shape:"dot",text:"disconnected."});
 
-				if (removed) {
-					// This node has been deleted
-				} else {
-					// This node is being restarted
-				}
-			
-				done();
-			});
-		}
+		///////////////////////////////////////////////////////////////////
+		//                     on close
+		///////////////////////////////////////////////////////////////////
+		this.on("close", function(removed, done) {
+			closing = true;
+
+			// Stop operations
+			if (reconnectTimer) {
+				clearTimeout(reconnectTimer);
+				reconnectTimer = null;
+			}
+
+			if (node.config && node.config.removeListener) {
+				node.config.removeListener("recover-socket", onRecoverSocket);
+			}
+
+			stopSocketOnly();
+
+			// Tell the world we had gone down
+			this.status({fill:"red",shape:"dot",text:"disconnected."});
+
+			if (removed) {
+				// This node has been deleted
+			} else {
+				// This node is being restarted
+			}
+
+			done();
+		});
   }
   RED.nodes.registerType("socketcan-in",SocketcanSendNode);
 }
