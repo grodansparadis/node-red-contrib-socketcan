@@ -36,5 +36,11 @@
   "scripts": {
     "lint": "eslint .",
     "start": "mkdir -p .node-red/node_modules && ln -sf $PWD $PWD/.node-red/node_modules/node-red-contrib-socketcan && node-red -u .node-red"
+  },
+  "node-red"  : {
+    "version": ">=2.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }
